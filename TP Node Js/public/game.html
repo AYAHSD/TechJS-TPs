@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PokéBattle — Pokémon Battle Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="game.css">
+</head>
+<body>
+
+  <!-- SCREEN 1: Pokémon Selection -->
+  <div id="screen-select" class="screen active">
+    <div class="select-bg"></div>
+    <div class="select-container">
+      <a href="/" class="back-link">← Back to PokéDex</a>
+      <h1 class="select-title">Choose Your <span class="glow-text">Pokémon</span></h1>
+      <p class="select-subtitle">Search for your fighter, then pick 5 battle moves</p>
+
+      <div class="select-search-wrap">
+        <input type="text" id="select-search" placeholder="Search Pokémon (e.g. charizard)..." autocomplete="off">
+        <button id="select-search-btn">Search</button>
+      </div>
+
+      <!-- Pokemon preview card -->
+      <div id="select-preview" class="select-preview hidden">
+        <div class="select-pokemon-card">
+          <div class="select-sprite-wrap">
+            <img id="sel-sprite" src="" alt="">
+            <div class="select-rings"></div>
+          </div>
+          <div class="select-info">
+            <div class="sel-id" id="sel-id">#025</div>
+            <h2 id="sel-name">Pikachu</h2>
+            <div id="sel-types" class="sel-types"></div>
+            <div class="sel-stats-mini">
+              <span id="sel-hp-stat">HP: 35</span>
+              <span id="sel-atk-stat">ATK: 55</span>
+              <span id="sel-spd-stat">SPD: 90</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="moves-section">
+          <h3>Select <span id="moves-selected-count">0</span>/5 Moves</h3>
+          <p class="moves-hint">Only moves with power are shown. Choose wisely!</p>
+          <div id="moves-available" class="moves-available"></div>
+        </div>
+
+        <button id="start-battle-btn" class="start-battle-btn" disabled>
+          ⚔️ Start Battle!
+        </button>
+      </div>
+
+      <div id="select-loading" class="select-loading hidden">
+        <div class="mini-ball"></div>
+        <span>Loading Pokémon data...</span>
+      </div>
+
+      <div id="select-error" class="select-error hidden">
+        <span id="select-error-msg">Pokémon not found. Try another name!</span>
+      </div>
+
+      <!-- Quick picks -->
+      <div class="quick-picks">
+        <span>Quick picks:</span>
+        <button class="qp-btn" data-p="pikachu">⚡ Pikachu</button>
+        <button class="qp-btn" data-p="charizard">🔥 Charizard</button>
+        <button class="qp-btn" data-p="blastoise">💧 Blastoise</button>
+        <button class="qp-btn" data-p="mewtwo">🔮 Mewtwo</button>
+        <button class="qp-btn" data-p="gengar">👻 Gengar</button>
+        <button class="qp-btn" data-p="lucario">🥊 Lucario</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: Battle Arena -->
+  <div id="screen-battle" class="screen">
+    <div class="battle-bg" id="battle-bg"></div>
+
+    <!-- Header -->
+    <div class="battle-header">
+      <div class="battle-title">⚔️ PokéBattle</div>
+      <button id="flee-btn" class="flee-btn">🏃 Flee</button>
+    </div>
+
+    <!-- Arena -->
+    <div class="battle-arena">
+      <!-- Bot side -->
+      <div class="fighter-side bot-side" id="bot-side">
+        <div class="fighter-info">
+          <div class="fighter-label">BOT</div>
+          <div class="fighter-name" id="bot-name">???</div>
+          <div class="hp-bar-wrap">
+            <div class="hp-label">HP <span id="bot-hp-val">300</span>/300</div>
+            <div class="hp-bar-container">
+              <div class="hp-bar" id="bot-hp-bar" style="width:100%"></div>
+            </div>
+          </div>
+          <div id="bot-types" class="fighter-types"></div>
+        </div>
+        <div class="fighter-sprite-wrap" id="bot-sprite-wrap">
+          <img id="bot-sprite" class="fighter-sprite bot-sprite" src="" alt="">
+        </div>
+      </div>
+
+      <!-- VS divider -->
+      <div class="vs-divider">
+        <div class="vs-circle">VS</div>
+      </div>
+
+      <!-- Player side -->
+      <div class="fighter-side player-side" id="player-side">
+        <div class="fighter-sprite-wrap" id="player-sprite-wrap">
+          <img id="player-sprite" class="fighter-sprite player-sprite" src="" alt="">
+        </div>
+        <div class="fighter-info">
+          <div class="fighter-label you-label">YOU</div>
+          <div class="fighter-name" id="player-name">???</div>
+          <div class="hp-bar-wrap">
+            <div class="hp-label">HP <span id="player-hp-val">300</span>/300</div>
+            <div class="hp-bar-container">
+              <div class="hp-bar player-hp-bar" id="player-hp-bar" style="width:100%"></div>
+            </div>
+          </div>
+          <div id="player-types" class="fighter-types"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Battle Log -->
+    <div class="battle-log-wrap">
+      <div class="battle-log" id="battle-log">
+        <div class="log-entry log-system">⚔️ Battle started! Choose your move!</div>
+      </div>
+    </div>
+
+    <!-- Move Panel -->
+    <div class="move-panel" id="move-panel">
+      <div class="move-panel-header">
+        <span>🎯 Choose your move:</span>
+        <span class="turn-indicator" id="turn-indicator">Turn 1</span>
+      </div>
+      <div class="moves-grid" id="battle-moves-grid"></div>
+    </div>
+
+    <!-- Waiting overlay (bot is "thinking") -->
+    <div class="thinking-overlay hidden" id="thinking-overlay">
+      <div class="thinking-text">Bot is choosing...</div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: Game Over -->
+  <div id="screen-gameover" class="screen">
+    <div class="gameover-bg" id="gameover-bg"></div>
+    <div class="gameover-content">
+      <div class="gameover-icon" id="gameover-icon">🏆</div>
+      <h1 class="gameover-title" id="gameover-title">You Win!</h1>
+      <p class="gameover-subtitle" id="gameover-subtitle">You defeated the bot's Pokémon!</p>
+      <div class="gameover-stats" id="gameover-stats"></div>
+      <div class="gameover-btns">
+        <button class="btn-rematch" id="btn-rematch">🔄 Rematch</button>
+        <button class="btn-new" id="btn-new">🔀 New Pokémon</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

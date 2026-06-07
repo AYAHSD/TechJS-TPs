@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Library — BookShelf</title>
+  <meta name="description" content="Manage your personal reading list, track progress and stats." />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+
+    /* ===== TRACKER PAGE SPECIFIC ===== */
+
+    .tracker-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+      margin-top: 28px;
+    }
+
+    /* Add form panel */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+    }
+
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title span { color: var(--accent); }
+
+    /* Form */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-field.full { grid-column: span 2; }
+
+    .form-field label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .form-field input,
+    .form-field select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 0.875rem;
+      color: var(--text);
+      font-family: var(--font);
+      transition: border-color var(--transition), background var(--transition);
+      outline: none;
+      width: 100%;
+    }
+
+    .form-field input:focus,
+    .form-field select:focus {
+      border-color: var(--accent);
+      background: rgba(200,168,107,0.05);
+    }
+
+    .form-field input::placeholder { color: var(--muted); }
+
+    .form-field select option { background: #1e1e27; }
+
+    /* Checkbox */
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      grid-column: span 2;
+      padding: 4px 0;
+    }
+
+    .check-row input[type="checkbox"] {
+      width: 18px; height: 18px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .check-row label {
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    /* Submit button */
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 700;
+      background: var(--accent);
+      color: #0e0e11;
+      margin-top: 6px;
+      grid-column: span 2;
+      transition: all var(--transition);
+      letter-spacing: 0.01em;
+    }
+    .btn-submit:hover {
+      background: #d9b87c;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(200,168,107,.3);
+    }
+
+    /* Stats panel */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .mini-stat {
+      background: var(--surface2);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      border: 1px solid var(--border);
+    }
+
+    .mini-stat-val {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .mini-stat-label {
+      font-size: 0.68rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-top: 2px;
+    }
+
+    /* Books list */
+    .books-section { flex: 1; }
+
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 7px 16px;
+      border-radius: 99px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      background: var(--surface);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .filter-btn.active, .filter-btn:hover {
+      background: var(--accent);
+      color: #0e0e11;
+      border-color: var(--accent);
+    }
+
+    .book-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 10px;
+      transition: all var(--transition);
+      position: relative;
+    }
+
+    .book-card:hover {
+      border-color: rgba(200,168,107,0.25);
+      background: var(--surface2);
+      transform: translateX(3px);
+    }
+
+    .book-spine {
+      width: 46px;
+      min-height: 64px;
+      border-radius: 7px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+    }
+
+    .book-card-info { flex: 1; min-width: 0; }
+
+    .book-card-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 3px;
+    }
+
+    .book-card-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .book-card-meta .sep { color: var(--border); }
+
+    /* Progress bar */
+    .progress-wrap {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 4px;
+      background: var(--surface2);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--accent), #e8c88a);
+      transition: width 0.6s ease;
+    }
+
+    .progress-pct {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--accent);
+      min-width: 30px;
+    }
+
+    .book-card-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .delete-btn {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 0.72rem;
+      transition: all var(--transition);
+    }
+    .delete-btn:hover {
+      background: rgba(239,68,68,.12);
+      border-color: rgba(239,68,68,.3);
+      color: #f87171;
+    }
+
+    /* Status badge */
+    .status-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 99px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .status-Read         { background: rgba(52,211,153,.15); color: #34d399; }
+    .status-Finished     { background: rgba(52,211,153,.15); color: #34d399; }
+    .status-Re-read      { background: rgba(124,106,245,.15); color: #a89cf7; }
+    .status-DNF          { background: rgba(239,68,68,.12); color: #f87171; }
+    .status-Currently    { background: rgba(200,168,107,.15); color: var(--accent); }
+    .status-Want         { background: rgba(255,255,255,.08); color: var(--muted); }
+    .status-Returned     { background: rgba(255,255,255,.05); color: #555; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+
+    .empty-state-icon { font-size: 4rem; margin-bottom: 16px; }
+    .empty-state h3 { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+    .empty-state p { font-size: 0.85rem; }
+
+    @media (max-width: 900px) {
+      .tracker-layout { grid-template-columns: 1fr; }
+    }
+
+    /* ── Edit button on card ── */
+    .edit-btn {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 0.72rem;
+      transition: all var(--transition);
+      cursor: pointer;
+    }
+    .edit-btn:hover {
+      background: rgba(200,168,107,.12);
+      border-color: rgba(200,168,107,.4);
+      color: var(--accent);
+    }
+
+    /* ── Quick progress nudge bar ── */
+    .quick-progress {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .quick-progress input[type=range] {
+      flex: 1;
+      accent-color: var(--accent);
+      cursor: pointer;
+      height: 4px;
+    }
+    .quick-save-btn {
+      background: var(--accent);
+      color: #0e0e11;
+      border: none;
+      border-radius: 7px;
+      padding: 4px 11px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background var(--transition);
+      white-space: nowrap;
+    }
+    .quick-save-btn:hover { background: #d9b87c; }
+
+    /* ── Modal overlay ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal {
+      background: var(--surface);
+      border: 1px solid rgba(200,168,107,.2);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(16px) scale(.97);
+      transition: transform .25s cubic-bezier(.4,0,.2,1);
+    }
+    .modal-overlay.open .modal {
+      transform: translateY(0) scale(1);
+    }
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 22px;
+    }
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: -.02em;
+    }
+    .modal-subtitle {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+    .modal-close {
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      padding: 6px 10px;
+      font-size: .85rem;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .modal-close:hover { background: var(--surface2); color: var(--text); }
+
+    /* Progress ring in modal */
+    .modal-ring-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .modal-ring-inner { position: relative; }
+    .modal-ring-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 1.3rem;
+    }
+    .modal-ring-label small {
+      font-size: .65rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* Range slider in modal */
+    .pages-slider-wrap {
+      margin: 16px 0;
+    }
+    .pages-slider-wrap label {
+      font-size: .72rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .pages-slider-wrap label span {
+      color: var(--accent);
+      font-size: .85rem;
+    }
+    input#editSlider {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+      height: 6px;
+    }
+    .slider-ends {
+      display: flex;
+      justify-content: space-between;
+      font-size: .68rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .btn-save {
+      flex: 1;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      font-size: .9rem;
+      font-weight: 700;
+      background: var(--accent);
+      color: #0e0e11;
+      border: none;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .btn-save:hover { background: #d9b87c; transform: translateY(-1px); }
+    .btn-cancel {
+      padding: 12px 20px;
+      border-radius: var(--radius-sm);
+      font-size: .9rem;
+      font-weight: 600;
+      background: var(--tag-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .btn-cancel:hover { background: var(--surface2); }
+  </style>
+</head>
+<body>
+
+  <!-- ===== NAV ===== -->
+  <header>
+    <nav class="nav">
+      <div class="nav-logo">
+        <div class="nav-logo-icon">📚</div>
+        BookShelf
+      </div>
+
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="tracker.html" class="active">My Library</a></li>
+        <li><a href="dashboard.html">Dashboard</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <button class="btn btn-ghost" onclick="document.getElementById('bookTitle').focus()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Add Book
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="tracker-layout">
+
+      <!-- ===== LEFT: BOOK LIST ===== -->
+      <div class="books-section">
+
+        <!-- Filter row -->
+        <div class="filter-row" id="filterRow">
+          <button class="filter-btn active" data-filter="all" onclick="setFilter(this, 'all')">All</button>
+          <button class="filter-btn" data-filter="Currently reading" onclick="setFilter(this, 'Currently reading')">Reading</button>
+          <button class="filter-btn" data-filter="Read" onclick="setFilter(this, 'Read')">Read</button>
+          <button class="filter-btn" data-filter="Want to read" onclick="setFilter(this, 'Want to read')">Want to Read</button>
+          <button class="filter-btn" data-filter="DNF" onclick="setFilter(this, 'DNF')">DNF</button>
+        </div>
+
+        <div id="booksList">
+          <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <h3>Loading your library...</h3>
+            <p>Hang tight while we fetch your books.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== RIGHT: ADD FORM + STATS ===== -->
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+
+        <!-- Stats panel -->
+        <div class="panel" id="statsPanel">
+          <div class="panel-title">📊 <span>Your Stats</span></div>
+          <div class="stats-grid" id="statsGrid">
+            <div class="mini-stat">
+              <div class="mini-stat-val" id="s-total">—</div>
+              <div class="mini-stat-label">Total Books</div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-stat-val" id="s-read">—</div>
+              <div class="mini-stat-label">Completed</div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-stat-val" id="s-pages">—</div>
+              <div class="mini-stat-label">Pages Read</div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-stat-val" id="s-total-pages">—</div>
+              <div class="mini-stat-label">Total Pages</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Book form -->
+        <div class="panel">
+          <div class="panel-title">✏️ <span>Add New Book</span></div>
+          <form id="bookForm">
+            <div class="form-grid">
+              <div class="form-field full">
+                <label>Title</label>
+                <input id="bookTitle" name="title" placeholder="Book title..." required />
+              </div>
+              <div class="form-field full">
+                <label>Author</label>
+                <input name="author" placeholder="Author name..." required />
+              </div>
+              <div class="form-field">
+                <label>Pages</label>
+                <input type="number" name="pages" placeholder="e.g. 320" required />
+              </div>
+              <div class="form-field">
+                <label>Pages Read</label>
+                <input type="number" name="pagesRead" placeholder="0" value="0" />
+              </div>
+              <div class="form-field">
+                <label>Price (€)</label>
+                <input type="number" name="price" placeholder="0.00" step="0.01" required />
+              </div>
+              <div class="form-field">
+                <label>Suggested By</label>
+                <input name="suggestedBy" placeholder="(optional)" />
+              </div>
+              <div class="form-field">
+                <label>Status</label>
+                <select name="status">
+                  <option>Read</option>
+                  <option>Re-read</option>
+                  <option>DNF</option>
+                  <option>Currently reading</option>
+                  <option>Returned Unread</option>
+                  <option>Want to read</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Format</label>
+                <select name="format">
+                  <option>Print</option>
+                  <option>PDF</option>
+                  <option>Ebook</option>
+                  <option>AudioBook</option>
+                </select>
+              </div>
+              <div class="check-row">
+                <input type="checkbox" name="finished" id="finishedCheck" />
+                <label for="finishedCheck">Mark as Finished</label>
+              </div>
+              <button type="submit" class="btn-submit">+ Add to Library</button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ===== EDIT MODAL ===== -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="modalTitle">Book Title</div>
+          <div class="modal-subtitle" id="modalAuthor">Author</div>
+        </div>
+        <button class="modal-close" onclick="closeModal()">✕ Close</button>
+      </div>
+
+      <!-- Progress Ring -->
+      <div class="modal-ring-wrap">
+        <div class="modal-ring-inner">
+          <svg width="112" height="112" viewBox="0 0 112 112">
+            <circle cx="56" cy="56" r="44" fill="none" stroke="var(--surface2)" stroke-width="10"/>
+            <circle id="ringCircle" cx="56" cy="56" r="44" fill="none"
+              stroke="var(--accent)" stroke-width="10"
+              stroke-dasharray="0 276.46" stroke-dashoffset="69.12"
+              stroke-linecap="round"
+              style="transition: stroke-dasharray .4s ease"/>
+          </svg>
+          <div class="modal-ring-label">
+            <span id="ringPct">0%</span>
+            <small id="editPagesVal">0p read</small>
+          </div>
+        </div>
+      </div>
+
+      <form id="editForm">
+        <!-- Slider -->
+        <div class="pages-slider-wrap">
+          <label>
+            Pages Read
+            <span id="editSliderMax">0 pages</span>
+          </label>
+          <input type="range" id="editSlider" min="0" max="100" value="0" />
+          <div class="slider-ends"><span>0</span><span id="editSliderMax2"></span></div>
+        </div>
+
+        <!-- Fields grid -->
+        <div class="form-grid" style="gap:12px">
+          <div class="form-field">
+            <label>Pages Read</label>
+            <input type="number" id="editPagesRead" min="0" />
+          </div>
+          <div class="form-field">
+            <label>Total Pages</label>
+            <input type="number" id="editPagesTotal" min="1" />
+          </div>
+          <div class="form-field">
+            <label>Status</label>
+            <select id="editStatus">
+              <option>Read</option>
+              <option>Re-read</option>
+              <option>DNF</option>
+              <option>Currently reading</option>
+              <option>Returned Unread</option>
+              <option>Want to read</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Format</label>
+            <select id="editFormat">
+              <option>Print</option>
+              <option>PDF</option>
+              <option>Ebook</option>
+              <option>AudioBook</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Price (€)</label>
+            <input type="number" id="editPrice" step="0.01" min="0" />
+          </div>
+          <div class="form-field">
+            <label>Suggested By</label>
+            <input type="text" id="editSuggestedBy" placeholder="(optional)" />
+          </div>
+          <div class="check-row">
+            <input type="checkbox" id="editFinished" />
+            <label for="editFinished">Mark as Finished</label>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn-save" id="editSaveBtn">💾 Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API = '/api/books';
+    let allBooks = [];
+    let currentFilter = 'all';
+
+    const SPINE_COLORS = ['spine-1','spine-2','spine-3','spine-4','spine-5'];
+    const EMOJIS       = ['📘','📕','📗','📙','📓'];
+
+    function statusClass(s) {
+      if (s === 'Currently reading') return 'status-Currently';
+      if (s === 'Want to read')      return 'status-Want';
+      if (s === 'Re-read')           return 'status-Re-read';
+      if (s === 'Returned Unread')   return 'status-Returned';
+      return 'status-' + s;
+    }
+
+    function renderBooks(list) {
+      const el = document.getElementById('booksList');
+      if (!list.length) {
+        el.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <h3>No books here yet</h3>
+            <p>Add your first book using the form →</p>
+          </div>`;
+        return;
+      }
+
+      el.innerHTML = list.map((b, i) => {
+        const pct = b.pages ? Math.round((b.pagesRead / b.pages) * 100) : 0;
+        return `
+          <div class="book-card" id="card-${b._id}">
+            <div class="book-spine ${SPINE_COLORS[i % 5]}">${EMOJIS[i % 5]}</div>
+            <div class="book-card-info">
+              <div class="book-card-title">${b.title}</div>
+              <div class="book-card-meta">
+                <span>${b.author}</span>
+                <span class="sep">•</span>
+                <span>${b.format}</span>
+                ${b.suggestedBy ? `<span class="sep">•</span><span>via ${b.suggestedBy}</span>` : ''}
+                ${b.price ? `<span class="sep">•</span><span>€${b.price}</span>` : ''}
+              </div>
+              <div class="progress-wrap">
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: ${pct}%"></div>
+                </div>
+                <div class="progress-pct">${pct}%</div>
+              </div>
+              <div style="font-size: 0.7rem; color: var(--muted); margin-top: 4px;">${b.pagesRead} / ${b.pages} pages</div>
+              <!-- Quick slider -->
+              <div class="quick-progress">
+                <input type="range" min="0" max="${b.pages}" value="${b.pagesRead}"
+                  oninput="this.nextElementSibling.textContent=this.value+'p'"
+                  data-id="${b._id}" class="quick-range"
+                />
+                <span style="font-size:.68rem;color:var(--muted);min-width:32px">${b.pagesRead}p</span>
+                <button class="quick-save-btn" onclick="quickSave('${b._id}', this)">Save</button>
+              </div>
+            </div>
+            <div class="book-card-right">
+              <span class="status-badge ${statusClass(b.status)}">${b.status}</span>
+              <button class="edit-btn" onclick="openEditModal('${b._id}')">✏️ Edit</button>
+              <button class="delete-btn" onclick="deleteBook('${b._id}')">🗑 Remove</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderStats(s, books) {
+      document.getElementById('s-total').textContent = books.length;
+      document.getElementById('s-read').textContent  = books.filter(b => b.finished).length;
+      document.getElementById('s-pages').textContent = (s.totalPagesRead || 0).toLocaleString();
+      document.getElementById('s-total-pages').textContent = (s.totalPages || 0).toLocaleString();
+    }
+
+    function setFilter(btn, filter) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = filter;
+      const filtered = filter === 'all'
+        ? allBooks
+        : allBooks.filter(b => b.status === filter);
+      renderBooks(filtered);
+    }
+
+    async function refresh() {
+      const [books, stats] = await Promise.all([
+        fetch(API).then(r => r.json()),
+        fetch(`${API}/stats/global`).then(r => r.json())
+      ]);
+      allBooks = books;
+      renderStats(stats, books);
+
+      const filtered = currentFilter === 'all'
+        ? allBooks
+        : allBooks.filter(b => b.status === currentFilter);
+      renderBooks(filtered);
+    }
+
+    document.getElementById('bookForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = {
+        title:       form.title.value,
+        author:      form.author.value,
+        pages:       Number(form.pages.value),
+        pagesRead:   Number(form.pagesRead.value) || 0,
+        status:      form.status.value,
+        price:       Number(form.price.value) || 0,
+        format:      form.format.value,
+        suggestedBy: form.suggestedBy.value || '',
+        finished:    !!form.finished.checked
+      };
+      if (data.pagesRead >= data.pages && data.pages > 0) data.finished = true;
+
+      const btn = form.querySelector('.btn-submit');
+      btn.textContent = 'Adding...';
+      btn.disabled = true;
+
+      await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      form.reset();
+      btn.textContent = '+ Add to Library';
+      btn.disabled = false;
+      refresh();
+    });
+
+    async function deleteBook(id) {
+      if (!confirm('Remove this book?')) return;
+      await fetch(`${API}/${id}`, { method: 'DELETE' });
+      refresh();
+    }
+
+    /* ── Quick slider save ── */
+    async function quickSave(id, btn) {
+      const card = document.getElementById('card-' + id);
+      const range = card.querySelector('.quick-range');
+      const newPages = Number(range.value);
+      const book = allBooks.find(b => b._id === id);
+      if (!book) return;
+      btn.textContent = '…';
+      btn.disabled = true;
+      await fetch(`${API}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...book, pagesRead: newPages })
+      });
+      btn.textContent = '✓';
+      setTimeout(() => { btn.textContent = 'Save'; btn.disabled = false; }, 800);
+      refresh();
+    }
+
+    /* ── Edit Modal ── */
+    let editingId = null;
+
+    function openEditModal(id) {
+      const b = allBooks.find(b => b._id === id);
+      if (!b) return;
+      editingId = id;
+      const pct = b.pages ? Math.round((b.pagesRead / b.pages) * 100) : 0;
+
+      document.getElementById('modalTitle').textContent    = b.title;
+      document.getElementById('modalAuthor').textContent   = b.author;
+      document.getElementById('editSlider').max            = b.pages;
+      document.getElementById('editSlider').value          = b.pagesRead;
+      document.getElementById('editSliderMax').textContent  = b.pages + ' pages';
+      document.getElementById('editPagesVal').textContent   = b.pagesRead + 'p read';
+      document.getElementById('editStatus').value          = b.status;
+      document.getElementById('editPagesRead').value       = b.pagesRead;
+      document.getElementById('editPagesTotal').value      = b.pages;
+      document.getElementById('editPrice').value           = b.price;
+      document.getElementById('editSuggestedBy').value     = b.suggestedBy || '';
+      document.getElementById('editFormat').value          = b.format;
+      document.getElementById('editFinished').checked      = b.finished;
+      updateRing(pct);
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+      editingId = null;
+    }
+
+    function updateRing(pct) {
+      const R = 44, cx = 56, cy = 56;
+      const circ = 2 * Math.PI * R;
+      const dash  = (pct / 100) * circ;
+      document.getElementById('ringCircle').setAttribute('stroke-dasharray', `${dash} ${circ}`);
+      document.getElementById('ringPct').textContent = pct + '%';
+    }
+
+    document.getElementById('editSlider').addEventListener('input', function() {
+      const total = Number(document.getElementById('editPagesTotal').value) || 1;
+      const val = Number(this.value);
+      document.getElementById('editPagesRead').value = val;
+      document.getElementById('editPagesVal').textContent = val + 'p read';
+      updateRing(Math.round((val / total) * 100));
+    });
+
+    document.getElementById('editPagesRead').addEventListener('input', function() {
+      const total = Number(document.getElementById('editPagesTotal').value) || 1;
+      const val = Math.min(Number(this.value), total);
+      document.getElementById('editSlider').value = val;
+      document.getElementById('editPagesVal').textContent = val + 'p read';
+      updateRing(Math.round((val / total) * 100));
+    });
+
+    document.getElementById('editForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!editingId) return;
+      const book = allBooks.find(b => b._id === editingId);
+      const pagesRead = Number(document.getElementById('editPagesRead').value);
+      const pages     = Number(document.getElementById('editPagesTotal').value);
+      const data = {
+        ...book,
+        pagesRead,
+        pages,
+        status:      document.getElementById('editStatus').value,
+        price:       Number(document.getElementById('editPrice').value),
+        suggestedBy: document.getElementById('editSuggestedBy').value,
+        format:      document.getElementById('editFormat').value,
+        finished:    document.getElementById('editFinished').checked || pagesRead >= pages
+      };
+      const btn = document.getElementById('editSaveBtn');
+      btn.textContent = 'Saving…';
+      btn.disabled = true;
+      await fetch(`${API}/${editingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      closeModal();
+      refresh();
+    });
+
+    // Close on backdrop click
+    document.getElementById('modalOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    refresh();
+  </script>
+
+</body>
+</html>

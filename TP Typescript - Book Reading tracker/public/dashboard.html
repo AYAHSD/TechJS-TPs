@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard — BookShelf</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ─── Dashboard Grid ─── */
+    .dash-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+      margin-top: 28px;
+    }
+    .d1  { grid-column: span 3; }
+    .d2  { grid-column: span 5; }
+    .d3  { grid-column: span 4; }
+    .d4  { grid-column: span 7; }
+    .d5  { grid-column: span 5; }
+    .d6  { grid-column: span 4; }
+    .d7  { grid-column: span 4; }
+    .d8  { grid-column: span 4; }
+    .d9  { grid-column: span 12; }
+
+    @media(max-width:1024px){
+      .d1,.d2,.d3,.d4,.d5,.d6,.d7,.d8{ grid-column: span 6; }
+    }
+    @media(max-width:640px){
+      .d1,.d2,.d3,.d4,.d5,.d6,.d7,.d8{ grid-column: span 12; }
+    }
+
+    /* ─── Panel ─── */
+    .dp {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 22px;
+      transition: border-color .25s;
+    }
+    .dp:hover { border-color: rgba(200,168,107,.2); }
+    .dp-title {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .dp-title span { color: var(--accent); font-size: 1rem; }
+
+    /* ─── KPI Cards ─── */
+    .kpi-val {
+      font-size: 2.4rem;
+      font-weight: 900;
+      letter-spacing: -.04em;
+      line-height: 1;
+    }
+    .kpi-sub { font-size: .75rem; color: var(--muted); margin-top: 6px; }
+    .kpi-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: .7rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 99px;
+      margin-top: 10px;
+    }
+    .kpi-green { background: rgba(52,211,153,.15); color: #34d399; }
+    .kpi-gold  { background: rgba(200,168,107,.15); color: var(--accent); }
+    .kpi-purple{ background: rgba(124,106,245,.15); color: #a89cf7; }
+    .kpi-red   { background: rgba(239,68,68,.12);   color: #f87171; }
+
+    /* ─── SVG Chart area ─── */
+    svg { display: block; overflow: visible; }
+    .chart-wrap { width: 100%; }
+
+    /* ─── Progress bar ─── */
+    .prog-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 12px;
+    }
+    .prog-label { font-size: .78rem; min-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .prog-track {
+      flex: 1; height: 6px; background: var(--surface2);
+      border-radius: 99px; overflow: hidden;
+    }
+    .prog-fill {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, var(--accent), #e8c88a);
+      transition: width .8s cubic-bezier(.4,0,.2,1);
+    }
+    .prog-pct { font-size: .7rem; font-weight: 700; color: var(--accent); min-width: 34px; text-align: right; }
+
+    /* ─── Status pills ─── */
+    .status-list { display: flex; flex-direction: column; gap: 10px; }
+    .status-row {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+    }
+    .status-dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .status-name { font-size: .82rem; font-weight: 600; flex: 1; margin-left: 10px; }
+    .status-count {
+      font-size: .82rem; font-weight: 800;
+      padding: 2px 10px; border-radius: 99px;
+    }
+
+    /* ─── Currently reading cards ─── */
+    .reading-cards { display: flex; flex-direction: column; gap: 12px; }
+    .rc {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px;
+      background: var(--surface2);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+    .rc-spine {
+      width: 40px; height: 56px; border-radius: 6px;
+      flex-shrink: 0; display: flex;
+      align-items: center; justify-content: center;
+      font-size: 1.3rem;
+    }
+    .rc-info { flex: 1; min-width: 0; }
+    .rc-title { font-size: .88rem; font-weight: 700; }
+    .rc-author { font-size: .72rem; color: var(--muted); margin-bottom: 8px; }
+
+    /* ─── Format donut ─── */
+    .donut-wrap {
+      display: flex; align-items: center; gap: 20px;
+    }
+    .donut-legend { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .legend-row {
+      display: flex; align-items: center; gap: 8px;
+      font-size: .78rem;
+    }
+    .legend-dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .legend-name { flex: 1; }
+    .legend-val { font-weight: 700; }
+
+    /* ─── Spend ─── */
+    .spend-val {
+      font-size: 2rem; font-weight: 900;
+      letter-spacing: -.03em;
+      color: var(--accent);
+    }
+    .spend-avg { font-size: .75rem; color: var(--muted); margin-top: 4px; }
+
+    /* ─── Top authors ─── */
+    .author-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .author-rank {
+      font-size: .7rem; font-weight: 800;
+      color: var(--muted); min-width: 18px;
+    }
+    .author-avatar-small {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #7c6af5);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .85rem; font-weight: 700; color: #000; flex-shrink: 0;
+    }
+    .author-name-sm { flex: 1; font-size: .82rem; font-weight: 600; }
+    .author-books-sm {
+      font-size: .7rem; font-weight: 700;
+      background: var(--tag-bg); padding: 2px 9px;
+      border-radius: 99px; color: var(--muted);
+    }
+
+    /* ─── Empty state ─── */
+    .empty-dash {
+      text-align: center; padding: 40px 20px; color: var(--muted);
+    }
+    .empty-dash .icon { font-size: 2.5rem; margin-bottom: 10px; }
+    .empty-dash p { font-size: .82rem; }
+
+    /* ─── Fade in ─── */
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(16px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .dash-grid > * {
+      animation: fadeUp .45s ease both;
+    }
+    .dash-grid > *:nth-child(1){ animation-delay:.05s }
+    .dash-grid > *:nth-child(2){ animation-delay:.1s  }
+    .dash-grid > *:nth-child(3){ animation-delay:.12s }
+    .dash-grid > *:nth-child(4){ animation-delay:.15s }
+    .dash-grid > *:nth-child(5){ animation-delay:.18s }
+    .dash-grid > *:nth-child(6){ animation-delay:.2s  }
+    .dash-grid > *:nth-child(7){ animation-delay:.22s }
+    .dash-grid > *:nth-child(8){ animation-delay:.24s }
+    .dash-grid > *:nth-child(9){ animation-delay:.26s }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<header>
+  <nav class="nav">
+    <div class="nav-logo">
+      <div class="nav-logo-icon">📚</div>
+      BookShelf
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="tracker.html">My Library</a></li>
+      <li><a href="dashboard.html" class="active">Dashboard</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="btn btn-primary" onclick="window.location='tracker.html'">+ Add Book</button>
+    </div>
+  </nav>
+</header>
+
+<main class="page">
+
+  <!-- Page header -->
+  <div style="margin-top:28px; margin-bottom:4px; display:flex; align-items:center; justify-content:space-between;">
+    <div>
+      <h1 style="font-size:1.6rem; font-weight:900; letter-spacing:-.03em;">Reading Dashboard</h1>
+      <p style="font-size:.82rem; color:var(--muted); margin-top:4px;">Your complete reading analytics at a glance</p>
+    </div>
+    <button class="btn btn-ghost" onclick="loadAll()" style="font-size:.8rem;">↻ Refresh</button>
+  </div>
+
+  <div class="dash-grid" id="dashGrid">
+    <div class="dp d1" style="grid-column:span 12; display:flex; align-items:center; justify-content:center; min-height:200px;">
+      <div class="empty-dash">
+        <div class="icon">⏳</div>
+        <p>Loading your stats…</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const API = '/api/books';
+const SPINE = ['#8b2fc9','#c8390b','#0070c0','#1a7a32','#b8860b'];
+const EMOJIS = ['📘','📕','📗','📙','📓'];
+
+const STATUS_META = {
+  'Read':             { color:'#34d399', bg:'rgba(52,211,153,.12)'  },
+  'Re-read':          { color:'#a89cf7', bg:'rgba(124,106,245,.12)' },
+  'DNF':              { color:'#f87171', bg:'rgba(239,68,68,.1)'    },
+  'Currently reading':{ color:'#c8a86b', bg:'rgba(200,168,107,.12)' },
+  'Want to read':     { color:'#94a3b8', bg:'rgba(148,163,184,.08)' },
+  'Returned Unread':  { color:'#475569', bg:'rgba(71,85,105,.1)'    },
+};
+
+const FORMAT_COLORS = ['#c8a86b','#7c6af5','#34d399','#f87171'];
+
+async function loadAll() {
+  const [books, stats] = await Promise.all([
+    fetch(API).then(r=>r.json()).catch(()=>[]),
+    fetch(`${API}/stats/global`).then(r=>r.json()).catch(()=>({}))
+  ]);
+  render(books, stats);
+}
+
+function render(books, stats) {
+  const grid = document.getElementById('dashGrid');
+
+  if (!books.length) {
+    grid.innerHTML = `<div class="dp" style="grid-column:span 12;">
+      <div class="empty-dash">
+        <div class="icon">📭</div>
+        <p>No books yet. <a href="tracker.html" style="color:var(--accent)">Add your first book →</a></p>
+      </div></div>`;
+    return;
+  }
+
+  const finished   = books.filter(b=>b.finished);
+  const reading    = books.filter(b=>b.status==='Currently reading');
+  const totalSpend = books.reduce((s,b)=>s+(b.price||0),0);
+  const avgSpend   = books.length ? (totalSpend/books.length).toFixed(2) : 0;
+  const totalPages = books.reduce((s,b)=>s+(b.pages||0),0);
+  const pagesRead  = books.reduce((s,b)=>s+(b.pagesRead||0),0);
+  const overallPct = totalPages ? Math.round((pagesRead/totalPages)*100) : 0;
+
+  // Status breakdown
+  const statusCount = {};
+  books.forEach(b=>{ statusCount[b.status]=(statusCount[b.status]||0)+1; });
+
+  // Format breakdown
+  const formatCount = {};
+  books.forEach(b=>{ formatCount[b.format]=(formatCount[b.format]||0)+1; });
+
+  // Top authors
+  const authorCount = {};
+  books.forEach(b=>{ authorCount[b.author]=(authorCount[b.author]||0)+1; });
+  const topAuthors = Object.entries(authorCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  // Suggested by
+  const suggestCount = {};
+  books.forEach(b=>{ if(b.suggestedBy){ suggestCount[b.suggestedBy]=(suggestCount[b.suggestedBy]||0)+1; }});
+  const topSuggest = Object.entries(suggestCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  grid.innerHTML = `
+    <!-- KPI 1: Total Books -->
+    <div class="dp d1">
+      <div class="dp-title"><span>📚</span> Library</div>
+      <div class="kpi-val">${books.length}</div>
+      <div class="kpi-sub">Total books tracked</div>
+      <div class="kpi-badge kpi-gold">📖 ${finished.length} finished</div>
+    </div>
+
+    <!-- KPI 2: Pages -->
+    <div class="dp d1">
+      <div class="dp-title"><span>📄</span> Pages</div>
+      <div class="kpi-val">${pagesRead.toLocaleString()}</div>
+      <div class="kpi-sub">of ${totalPages.toLocaleString()} total</div>
+      <div class="kpi-badge kpi-purple">${overallPct}% complete</div>
+    </div>
+
+    <!-- KPI 3: Spend -->
+    <div class="dp d1">
+      <div class="dp-title"><span>💶</span> Spending</div>
+      <div class="kpi-val">€${totalSpend.toFixed(0)}</div>
+      <div class="kpi-sub">Avg €${avgSpend} / book</div>
+      <div class="kpi-badge kpi-green">across ${books.length} books</div>
+    </div>
+
+    <!-- KPI 4: Reading now -->
+    <div class="dp d1">
+      <div class="dp-title"><span>🔖</span> Active</div>
+      <div class="kpi-val">${reading.length}</div>
+      <div class="kpi-sub">Currently reading</div>
+      <div class="kpi-badge ${reading.length>0?'kpi-gold':'kpi-red'}">${reading.length>0?'In progress':'Nothing active'}</div>
+    </div>
+
+    <!-- Status Breakdown -->
+    <div class="dp d2">
+      <div class="dp-title"><span>📊</span> Status Breakdown</div>
+      <div class="status-list">
+        ${Object.entries(STATUS_META).map(([s,m])=>{
+          const c = statusCount[s]||0;
+          const pct = books.length ? Math.round((c/books.length)*100) : 0;
+          return `<div class="status-row">
+            <div class="status-dot" style="background:${m.color}"></div>
+            <div class="status-name">${s}</div>
+            <div style="flex:1; margin:0 12px;">
+              <div class="prog-track"><div class="prog-fill" style="width:${pct}%; background:${m.color}"></div></div>
+            </div>
+            <div class="status-count" style="background:${m.bg}; color:${m.color}">${c}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- Format Donut -->
+    <div class="dp d3">
+      <div class="dp-title"><span>🗂</span> Format Split</div>
+      <div class="donut-wrap">
+        <svg width="110" height="110" viewBox="0 0 110 110" id="donutSvg"></svg>
+        <div class="donut-legend" id="donutLegend"></div>
+      </div>
+    </div>
+
+    <!-- Currently Reading -->
+    <div class="dp d4">
+      <div class="dp-title"><span>🔖</span> Currently Reading</div>
+      <div class="reading-cards">
+        ${reading.length ? reading.slice(0,4).map((b,i)=>{
+          const pct = b.pages ? Math.round((b.pagesRead/b.pages)*100) : 0;
+          return `<div class="rc">
+            <div class="rc-spine" style="background:linear-gradient(135deg,${SPINE[i%5]},${SPINE[(i+1)%5]})">${EMOJIS[i%5]}</div>
+            <div class="rc-info">
+              <div class="rc-title">${b.title}</div>
+              <div class="rc-author">${b.author}</div>
+              <div class="prog-track" style="height:5px">
+                <div class="prog-fill" style="width:${pct}%"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:4px">
+                <span style="font-size:.68rem;color:var(--muted)">${b.pagesRead} / ${b.pages} pages</span>
+                <span style="font-size:.68rem;font-weight:700;color:var(--accent)">${pct}%</span>
+              </div>
+            </div>
+          </div>`;
+        }).join('') : `<div class="empty-dash"><div class="icon">📖</div><p>Not reading anything right now.<br><a href="tracker.html" style="color:var(--accent)">Pick a book →</a></p></div>`}
+      </div>
+    </div>
+
+    <!-- Overall Progress -->
+    <div class="dp d3">
+      <div class="dp-title"><span>🎯</span> Overall Progress</div>
+      <div style="text-align:center;padding:10px 0">
+        <svg width="120" height="120" viewBox="0 0 120 120" id="ringsvg"></svg>
+        <div style="font-size:.78rem;color:var(--muted);margin-top:8px">${pagesRead.toLocaleString()} of ${totalPages.toLocaleString()} pages</div>
+      </div>
+    </div>
+
+    <!-- Top Authors -->
+    <div class="dp d4">
+      <div class="dp-title"><span>✍️</span> Top Authors</div>
+      ${topAuthors.length ? topAuthors.map(([name,count],i)=>`
+        <div class="author-row">
+          <div class="author-rank">#${i+1}</div>
+          <div class="author-avatar-small">${name[0].toUpperCase()}</div>
+          <div class="author-name-sm">${name}</div>
+          <div class="author-books-sm">${count} book${count>1?'s':''}</div>
+        </div>
+      `).join('') : `<div style="color:var(--muted);font-size:.82rem;padding:10px 0">No data yet.</div>`}
+    </div>
+
+    <!-- Books Progress List -->
+    <div class="dp d4">
+      <div class="dp-title"><span>📈</span> Reading Progress (All Books)</div>
+      ${books.filter(b=>b.pages>0).sort((a,b)=>b.percentage-a.percentage).slice(0,8).map((b,i)=>`
+        <div class="prog-row">
+          <div class="prog-label" title="${b.title}">${b.title}</div>
+          <div class="prog-track"><div class="prog-fill" style="width:${b.percentage||0}%"></div></div>
+          <div class="prog-pct">${b.percentage||0}%</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- Suggested By -->
+    <div class="dp d4">
+      <div class="dp-title"><span>💬</span> Suggested By</div>
+      ${topSuggest.length ? topSuggest.map(([name,count],i)=>`
+        <div class="author-row">
+          <div class="author-rank">#${i+1}</div>
+          <div class="author-avatar-small" style="background:linear-gradient(135deg,#7c6af5,#34d399)">${name[0].toUpperCase()}</div>
+          <div class="author-name-sm">${name}</div>
+          <div class="author-books-sm">${count} rec${count>1?'s':''}</div>
+        </div>
+      `).join('') : `<div style="color:var(--muted);font-size:.82rem;padding:10px 0">No suggestions tracked yet.</div>`}
+    </div>
+
+    <!-- Bar Chart: Price per book -->
+    <div class="dp d9">
+      <div class="dp-title"><span>💰</span> Price per Book</div>
+      <svg id="barChartSvg" class="chart-wrap" height="130"></svg>
+    </div>
+  `;
+
+  // Draw donut chart
+  drawDonut(formatCount, books.length);
+  // Draw ring
+  drawRing(overallPct);
+  // Draw bar chart
+  drawBars(books);
+}
+
+function drawDonut(formatCount, total) {
+  const svg = document.getElementById('donutSvg');
+  const legend = document.getElementById('donutLegend');
+  if (!svg || !legend) return;
+
+  const formats = Object.keys(formatCount);
+  const vals = formats.map(f=>formatCount[f]);
+  const sum = vals.reduce((a,b)=>a+b,0)||1;
+
+  const cx=55, cy=55, R=44, r=28;
+  let angle = -Math.PI/2;
+  let paths = '';
+
+  formats.forEach((f,i)=>{
+    const slice = (vals[i]/sum)*2*Math.PI;
+    const x1 = cx+R*Math.cos(angle), y1=cy+R*Math.sin(angle);
+    angle += slice;
+    const x2 = cx+R*Math.cos(angle), y2=cy+R*Math.sin(angle);
+    const xi1=cx+r*Math.cos(angle-slice), yi1=cy+r*Math.sin(angle-slice);
+    const xi2=cx+r*Math.cos(angle), yi2=cy+r*Math.sin(angle);
+    const large = slice>Math.PI?1:0;
+    paths += `<path d="M${x1},${y1} A${R},${R} 0 ${large},1 ${x2},${y2} L${xi2},${yi2} A${r},${r} 0 ${large},0 ${xi1},${yi1} Z" fill="${FORMAT_COLORS[i%4]}" opacity=".9"/>`;
+  });
+
+  svg.innerHTML = paths + `<text x="55" y="59" text-anchor="middle" font-size="11" font-weight="800" fill="var(--text)">${total}</text><text x="55" y="70" text-anchor="middle" font-size="7" fill="var(--muted)">books</text>`;
+
+  legend.innerHTML = formats.map((f,i)=>`
+    <div class="legend-row">
+      <div class="legend-dot" style="background:${FORMAT_COLORS[i%4]}"></div>
+      <div class="legend-name">${f}</div>
+      <div class="legend-val">${formatCount[f]}</div>
+    </div>
+  `).join('');
+}
+
+function drawRing(pct) {
+  const svg = document.getElementById('ringsvg');
+  if (!svg) return;
+  const R=48, cx=60, cy=60;
+  const circ = 2*Math.PI*R;
+  const dash = (pct/100)*circ;
+  svg.innerHTML = `
+    <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--surface2)" stroke-width="12"/>
+    <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--accent)" stroke-width="12"
+      stroke-dasharray="${dash} ${circ}" stroke-dashoffset="${circ*0.25}" stroke-linecap="round"/>
+    <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle"
+      font-size="16" font-weight="900" fill="var(--text)">${pct}%</text>
+    <text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="7" fill="var(--muted)">read</text>`;
+}
+
+function drawBars(books) {
+  const svg = document.getElementById('barChartSvg');
+  if (!svg) return;
+  const items = books.filter(b=>b.price>0).sort((a,b)=>b.price-a.price).slice(0,12);
+  if (!items.length){ svg.innerHTML=`<text x="10" y="60" fill="var(--muted)" font-size="12">No price data</text>`; return; }
+
+  const W = svg.parentElement.clientWidth || 800;
+  const H = 120, pad=40, bw=Math.floor((W-pad*2)/items.length)-6;
+  const maxP = Math.max(...items.map(b=>b.price));
+
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.setAttribute('width','100%');
+
+  let rects='', labels='';
+  items.forEach((b,i)=>{
+    const barH = Math.max(4, Math.round(((b.price/maxP)*(H-30))));
+    const x = pad + i*(bw+6);
+    const y = H-14-barH;
+    const color = SPINE[i%5];
+    rects += `<rect x="${x}" y="${y}" width="${bw}" height="${barH}" rx="4" fill="${color}" opacity=".85"/>`;
+    rects += `<text x="${x+bw/2}" y="${y-4}" text-anchor="middle" font-size="8" fill="var(--muted)">€${b.price}</text>`;
+    const short = b.title.length>8 ? b.title.slice(0,7)+'…' : b.title;
+    labels += `<text x="${x+bw/2}" y="${H-1}" text-anchor="middle" font-size="7" fill="var(--muted)">${short}</text>`;
+  });
+
+  svg.innerHTML = rects + labels;
+}
+
+loadAll();
+</script>
+</body>
+</html>

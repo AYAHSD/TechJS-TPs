@@ -1,0 +1,873 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BookShelf — Your Personal Reading Universe</title>
+  <meta name="description"
+    content="Track your reading journey, discover new books, and build your personal library with BookShelf." />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ===== HOME PAGE SPECIFIC ===== */
+
+    /* Hero Banner */
+    .hero-banner {
+      background: linear-gradient(135deg, #1a1308 0%, #2b1f0a 50%, #1a1308 100%);
+      border-radius: var(--radius-lg);
+      padding: 40px 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      overflow: hidden;
+      position: relative;
+      min-height: 200px;
+    }
+
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 70% 50%, rgba(200, 168, 107, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-text {
+      flex: 1;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-text h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+      max-width: 360px;
+    }
+
+    .hero-text p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      max-width: 300px;
+      line-height: 1.6;
+      margin-bottom: 22px;
+    }
+
+    .hero-books {
+      display: flex;
+      gap: -10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-book-stack {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+
+    .hero-book-card {
+      width: 80px;
+      height: 120px;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: -6px 4px 20px rgba(0, 0, 0, .7);
+      flex-shrink: 0;
+      transition: transform var(--transition);
+    }
+
+    .hero-book-card:nth-child(2) {
+      transform: rotate(4deg) translateY(-8px);
+    }
+
+    .hero-book-card:nth-child(3) {
+      transform: rotate(8deg) translateY(-14px);
+    }
+
+    .hero-book-card:nth-child(4) {
+      transform: rotate(12deg) translateY(-18px);
+    }
+
+    .hero-book-card:hover {
+      transform: rotate(0deg) translateY(-20px) scale(1.05) !important;
+      z-index: 5;
+    }
+
+    /* Bento Grid */
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-auto-rows: 90px;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    /* Card base */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      position: relative;
+      border: 1px solid var(--border);
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, .5);
+    }
+
+    .card-img-fill {
+      position: absolute;
+      inset: 0;
+    }
+
+    .card-img-fill img {
+      object-fit: cover;
+      width: 100%;
+      height: 100%;
+    }
+
+    .card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, .85) 0%, rgba(0, 0, 0, .3) 50%, transparent 100%);
+    }
+
+    .card-content {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 18px;
+      z-index: 2;
+    }
+
+    .card-content h3 {
+      font-weight: 700;
+      font-size: 1rem;
+      line-height: 1.25;
+      margin-top: 6px;
+    }
+
+    .card-content p {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 5px;
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-clamp: 2;
+      overflow: hidden;
+    }
+
+    .card-top {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 3;
+    }
+
+    .card-top-right {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 3;
+    }
+
+    /* Grid placements */
+    .c-featured {
+      grid-column: span 4;
+      grid-row: span 5;
+    }
+
+    .c-hero {
+      grid-column: span 8;
+      grid-row: span 3;
+    }
+
+    .c-genre-a {
+      grid-column: span 4;
+      grid-row: span 3;
+    }
+
+    .c-halloween {
+      grid-column: span 4;
+      grid-row: span 3;
+    }
+
+    .c-quote {
+      grid-column: span 4;
+      grid-row: span 3;
+    }
+
+    .c-book-lg {
+      grid-column: span 4;
+      grid-row: span 4;
+    }
+
+    .c-author {
+      grid-column: span 4;
+      grid-row: span 2;
+    }
+
+    /* Genre card (no overlay image, styled bg) */
+    .card-genre-fantasy {
+      background: linear-gradient(135deg, #0f1a2e 0%, #162a46 100%);
+    }
+
+    .card-genre-scifi {
+      background: linear-gradient(135deg, #0d1f1a 0%, #0a2e28 100%);
+    }
+
+    /* Quote card */
+    .card-quote {
+      background: linear-gradient(135deg, #1a0e2e 0%, #261340 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 22px;
+      border: 1px solid rgba(124, 106, 245, 0.15);
+    }
+
+    .quote-mark {
+      font-size: 3rem;
+      line-height: 1;
+      color: var(--accent2);
+      font-family: Georgia, serif;
+      margin-bottom: 8px;
+    }
+
+    .quote-text {
+      font-size: 0.82rem;
+      line-height: 1.65;
+      color: rgba(255, 255, 255, 0.8);
+      font-style: italic;
+      flex: 1;
+    }
+
+    .quote-footer {
+      margin-top: 14px;
+    }
+
+    .quote-footer .stars {
+      font-size: 1rem;
+    }
+
+    /* Author/person card */
+    .card-author {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: var(--surface2);
+    }
+
+    .author-info h4 {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .author-info span {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .author-avatar {
+      width: 70px;
+      height: 90px;
+      border-radius: 10px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    /* Stats row */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px 28px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      transition: all var(--transition);
+    }
+
+    .stat-card:hover {
+      border-color: rgba(200, 168, 107, 0.3);
+      background: var(--surface2);
+    }
+
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .stat-icon-gold {
+      background: rgba(200, 168, 107, 0.15);
+    }
+
+    .stat-icon-purple {
+      background: rgba(124, 106, 245, 0.15);
+    }
+
+    .stat-icon-green {
+      background: rgba(52, 211, 153, 0.12);
+    }
+
+    .stat-value {
+      font-size: 1.9rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    /* Section headers */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 40px 0 16px;
+    }
+
+    .section-header h2 {
+      font-weight: 800;
+      font-size: 1.2rem;
+      letter-spacing: -0.02em;
+    }
+
+    /* Book row cards */
+    .books-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+    }
+
+    .book-row-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .book-row-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, .5);
+      border-color: rgba(200, 168, 107, 0.2);
+    }
+
+    .book-row-thumb {
+      height: 180px;
+      overflow: hidden;
+      position: relative;
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .book-row-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .book-row-info {
+      padding: 14px;
+    }
+
+    .book-row-info h4 {
+      font-weight: 700;
+      font-size: 0.9rem;
+      line-height: 1.3;
+    }
+
+    .book-row-info .author-name {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .book-row-info .genre-tag {
+      margin-top: 8px;
+    }
+
+    .book-row-actions {
+      padding: 0 14px 14px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-sm {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-align: center;
+      transition: all var(--transition);
+    }
+
+    .btn-sm-primary {
+      background: var(--accent);
+      color: #0e0e11;
+    }
+
+    .btn-sm-primary:hover {
+      background: #d9b87c;
+    }
+
+    .btn-sm-ghost {
+      background: var(--tag-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-sm-ghost:hover {
+      background: var(--surface2);
+    }
+
+    /* Book emoji placeholder */
+    .book-emoji-placeholder {
+      font-size: 3.5rem;
+      opacity: 0.5;
+    }
+
+    /* Color spines for placeholder books */
+    .spine-1 {
+      background: linear-gradient(135deg, #8b2fc9, #5b21b6);
+    }
+
+    .spine-2 {
+      background: linear-gradient(135deg, #c8390b, #7c1d06);
+    }
+
+    .spine-3 {
+      background: linear-gradient(135deg, #0070c0, #004080);
+    }
+
+    .spine-4 {
+      background: linear-gradient(135deg, #1a7a32, #0d4a1e);
+    }
+
+    .spine-5 {
+      background: linear-gradient(135deg, #b8860b, #7a5a07);
+    }
+
+    /* Fade-in animation */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .page>* {
+      animation: fadeUp .5s ease both;
+    }
+
+    .page>*:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .page>*:nth-child(2) {
+      animation-delay: .1s;
+    }
+
+    .page>*:nth-child(3) {
+      animation-delay: .15s;
+    }
+
+    .page>*:nth-child(4) {
+      animation-delay: .2s;
+    }
+
+    .page>*:nth-child(5) {
+      animation-delay: .25s;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .bento-grid {
+        grid-template-columns: repeat(6, 1fr);
+      }
+
+      .c-featured {
+        grid-column: span 3;
+        grid-row: span 5;
+      }
+
+      .c-hero {
+        grid-column: span 6;
+        grid-row: span 3;
+      }
+
+      .c-genre-a {
+        grid-column: span 3;
+        grid-row: span 3;
+      }
+
+      .c-halloween {
+        grid-column: span 3;
+        grid-row: span 3;
+      }
+
+      .c-quote {
+        grid-column: span 6;
+        grid-row: span 3;
+      }
+
+      .c-book-lg {
+        grid-column: span 3;
+        grid-row: span 4;
+      }
+
+      .c-author {
+        grid-column: span 3;
+        grid-row: span 2;
+      }
+
+      .books-row {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .hero-books {
+        display: none;
+      }
+
+      .bento-grid {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+      }
+
+      .bento-grid .card {
+        min-height: 200px;
+      }
+
+      .books-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .stats-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ===== NAV ===== -->
+  <header>
+    <nav class="nav">
+      <div class="nav-logo">
+        <div class="nav-logo-icon"></div>
+        BookTracker
+      </div>
+
+      <ul class="nav-links">
+        <li><a href="index.html" class="active">Home</a></li>
+        <li><a href="tracker.html">My Library</a></li>
+        <li><a href="dashboard.html">Dashboard</a></li>
+        <li><a href="#discover">Discover</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <button class="btn btn-ghost" onclick="window.location='tracker.html'">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Add Book
+        </button>
+        <button class="btn btn-primary" onclick="window.location='tracker.html'">
+          My Library
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page" style="padding-top: 28px;">
+
+    <!-- ===== LIVE STATS ===== -->
+    <div class="stats-strip" id="statsStrip">
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-gold">📖</div>
+        <div>
+          <div class="stat-value" id="stat-total">—</div>
+          <div class="stat-label">Books Tracked</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-purple">📄</div>
+        <div>
+          <div class="stat-value" id="stat-pages">—</div>
+          <div class="stat-label">Pages Read</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-green">✅</div>
+        <div>
+          <div class="stat-value" id="stat-finished">—</div>
+          <div class="stat-label">Completed</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== BENTO GRID ===== -->
+    <div class="bento-grid" id="discover" style="margin-top: 24px;">
+
+      <!-- Featured / Recommendation card -->
+      <div class="card c-featured">
+        <div class="card-img-fill">
+          <img src="img-scifi.png" alt="Sci-Fi Featured" />
+        </div>
+        <div class="card-overlay"></div>
+        <div class="card-top">
+          <span class="tag tag-accent">⭐ Recommendation</span>
+        </div>
+        <div class="card-content">
+          <h3>The Stars Beyond Infinity</h3>
+          <p>Explore the boundaries of the universe in this breathtaking sci-fi epic shaped by science and imagination.
+          </p>
+        </div>
+      </div>
+
+      <!-- Hero banner card -->
+      <div class="card c-hero hero-banner" style="border: 1px solid rgba(200,168,107,0.12);">
+        <div class="hero-text">
+          <span class="tag tag-accent" style="margin-bottom: 12px; display: inline-flex;">🔥 Featured Collection</span>
+          <h1>Best of crime and<br />mystery books.</h1>
+          <p>A gripping collection of the finest crime and mystery stories, filled with twists and turns you won't see
+            coming.</p>
+          <button class="btn btn-primary" onclick="window.location='tracker.html'">
+            Explore Books
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+        <div class="hero-books">
+          <div class="hero-book-stack">
+            <div class="hero-book-card spine-2"></div>
+            <div class="hero-book-card spine-5"></div>
+            <div class="hero-book-card spine-1"></div>
+            <div class="hero-book-card spine-3"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Genre — Fantasy -->
+      <div class="card c-genre-a card-genre-fantasy">
+        <div class="card-img-fill" style="opacity: 0.6;">
+          <img src="img-fantasy.png" alt="Fantasy" />
+        </div>
+        <div class="card-overlay"></div>
+        <div class="card-top">
+          <span class="tag tag-purple">Genre</span>
+        </div>
+        <div class="card-content" style="display: flex; justify-content: space-between; align-items: flex-end;">
+          <div>
+            <h3>Fantasy</h3>
+            <p>Explore magical worlds, mythical creatures, and adventures.</p>
+          </div>
+          <button class="add-pill" onclick="window.location='tracker.html'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Add
+          </button>
+        </div>
+      </div>
+
+      <!-- Halloween / Horror -->
+      <div class="card c-halloween">
+        <div class="card-img-fill">
+          <img src="img-horror.png" alt="Horror" />
+        </div>
+        <div class="card-overlay"></div>
+        <div class="card-top">
+          <span class="tag tag-orange">🎃 Halloween Pick</span>
+        </div>
+        <div class="card-content">
+          <h3>Shadows of the Night</h3>
+          <p style="font-size: 0.7rem; color: rgba(255,255,255,0.5);">R.L. Stine</p>
+          <p>A groovy and fun adventure with just the right amount of mystery and chills.</p>
+        </div>
+      </div>
+
+      <!-- Quote card -->
+      <div class="card c-quote card-quote">
+        <div>
+          <div class="quote-mark">"</div>
+          <p class="quote-text">
+            A compelling book that stays with you long after the last page. Clear writing, strong message, and deeply
+            enjoyable.
+          </p>
+        </div>
+        <div class="quote-footer">
+          <div class="stars">★★★★★</div>
+          <div style="font-size: 0.7rem; color: var(--muted); margin-top: 4px;">— Reader Review</div>
+        </div>
+      </div>
+
+      <!-- Large genre book card -->
+      <div class="card c-book-lg card-genre-scifi">
+        <div class="card-img-fill" style="opacity: 0.5;">
+          <img src="img-scifi.png" alt="Science Fiction" />
+        </div>
+        <div class="card-overlay"></div>
+        <div class="card-top">
+          <span class="tag">Genre</span>
+        </div>
+        <div class="card-content" style="display: flex; justify-content: space-between; align-items: flex-end;">
+          <div>
+            <h3>Science Fiction</h3>
+            <p>Explores futuristic worlds shaped by science and imagination.</p>
+          </div>
+          <button class="add-pill" onclick="window.location='tracker.html'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Add
+          </button>
+        </div>
+      </div>
+
+      <!-- Author card -->
+      <div class="card c-author card-author">
+        <div class="author-info">
+          <h4>Your Reading Goal</h4>
+          <span>Track your progress</span>
+          <div style="margin-top: 10px;">
+            <button class="btn btn-primary" style="padding: 8px 16px; font-size: 0.8rem;"
+              onclick="window.location='tracker.html'">
+              View Library →
+            </button>
+          </div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 2.4rem; font-weight: 900; color: var(--accent);" id="hero-total">—</div>
+          <div style="font-size: 0.72rem; color: var(--muted);">Books so far</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== RECENTLY ADDED ROW ===== -->
+    <div class="section-header">
+      <h2>📚 Recently Added</h2>
+      <a href="tracker.html" class="btn btn-ghost" style="font-size: 0.82rem; padding: 8px 16px;">View all →</a>
+    </div>
+
+    <div class="books-row" id="recentBooks">
+      <!-- Populated by JS -->
+      <div class="book-row-card">
+        <div class="book-row-thumb spine-1">
+          <div class="book-emoji-placeholder">📘</div>
+        </div>
+        <div class="book-row-info">
+          <h4>Add your first book</h4>
+          <div class="author-name">Get started →</div>
+          <div class="genre-tag"><span class="tag">Library</span></div>
+        </div>
+        <div class="book-row-actions">
+          <button class="btn-sm btn-sm-primary" onclick="window.location='tracker.html'">+ Add Book</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const API = '/api/books';
+
+    async function loadHomeData() {
+      try {
+        const [books, stats] = await Promise.all([
+          fetch(API).then(r => r.json()),
+          fetch(`${API}/stats/global`).then(r => r.json())
+        ]);
+
+        // Stats strip
+        document.getElementById('stat-total').textContent = books.length;
+        document.getElementById('stat-pages').textContent =
+          (stats.totalPagesRead || 0).toLocaleString();
+        document.getElementById('stat-finished').textContent =
+          books.filter(b => b.finished).length;
+        document.getElementById('hero-total').textContent = books.length;
+
+        // Recent books
+        if (books.length > 0) {
+          renderRecentBooks(books.slice(-5).reverse());
+        }
+      } catch (e) {
+        // Server not running – show dashes
+        console.warn('Could not reach API', e);
+      }
+    }
+
+    const SPINE_COLORS = ['spine-1', 'spine-2', 'spine-3', 'spine-4', 'spine-5'];
+    const EMOJIS = ['📘', '📕', '📗', '📙', '📓'];
+
+    function renderRecentBooks(books) {
+      const container = document.getElementById('recentBooks');
+      container.innerHTML = books.map((b, i) => `
+        <div class="book-row-card">
+          <div class="book-row-thumb ${SPINE_COLORS[i % 5]}">
+            <div class="book-emoji-placeholder">${EMOJIS[i % 5]}</div>
+          </div>
+          <div class="book-row-info">
+            <h4>${b.title}</h4>
+            <div class="author-name">${b.author}</div>
+            <div class="genre-tag">
+              <span class="tag">${b.format}</span>
+              <span class="tag" style="margin-left: 4px; ${b.finished ? 'background:rgba(52,211,153,.15);color:#34d399' : ''}">${b.status}</span>
+            </div>
+          </div>
+          <div class="book-row-actions">
+            <button class="btn-sm btn-sm-primary" onclick="window.location='tracker.html'">View</button>
+            <button class="btn-sm btn-sm-ghost">${b.pagesRead}/${b.pages}p</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    loadHomeData();
+  </script>
+
+</body>
+
+</html>

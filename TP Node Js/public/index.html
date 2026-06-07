@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A stunning 3D Pokédex interface powered by PokéAPI and Three.js">
+  <title>PokéDex 3D — Interactive Pokémon Explorer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 3D Canvas Background -->
+  <canvas id="three-canvas"></canvas>
+
+  <!-- Particle overlay -->
+  <div id="particles-overlay"></div>
+
+  <!-- Main App Container -->
+  <div id="app">
+    <!-- Header -->
+    <header id="header">
+      <div class="header-inner">
+        <div class="logo" id="logo">
+          <div class="pokeball-icon">
+            <div class="pokeball-top"></div>
+            <div class="pokeball-line"></div>
+            <div class="pokeball-center"></div>
+            <div class="pokeball-bottom"></div>
+          </div>
+          <h1>PokéDex <span class="logo-3d">3D</span></h1>
+        </div>
+        <a href="/game.html" class="play-game-btn">⚔️ Play Battle Game</a>
+        <div class="search-container" id="search-container">
+          <div class="search-glow"></div>
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input type="text" id="search-input" placeholder="Search Pokémon by name or ID..." autocomplete="off">
+          <div class="search-suggestions" id="search-suggestions"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Section (visible initially) -->
+    <section id="hero-section" class="active">
+      <div class="hero-content">
+        <h2 class="hero-title">
+          <span class="hero-line">Explore the</span>
+          <span class="hero-line gradient-text">Pokémon Universe</span>
+          <span class="hero-line">in 3D</span>
+        </h2>
+        <p class="hero-subtitle">Search for any Pokémon to reveal its stats, abilities, and types in a stunning interactive 3D experience.</p>
+        <div class="hero-suggestions">
+          <span class="suggestion-label">Try:</span>
+          <button class="suggestion-chip" data-pokemon="pikachu">Pikachu</button>
+          <button class="suggestion-chip" data-pokemon="charizard">Charizard</button>
+          <button class="suggestion-chip" data-pokemon="mewtwo">Mewtwo</button>
+          <button class="suggestion-chip" data-pokemon="gengar">Gengar</button>
+          <button class="suggestion-chip" data-pokemon="lucario">Lucario</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Loading State -->
+    <section id="loading-section">
+      <div class="loader">
+        <div class="loader-pokeball">
+          <div class="loader-pokeball-top"></div>
+          <div class="loader-pokeball-line"></div>
+          <div class="loader-pokeball-center"></div>
+          <div class="loader-pokeball-bottom"></div>
+        </div>
+        <p class="loader-text">Catching Pokémon data...</p>
+      </div>
+    </section>
+
+    <!-- Error State -->
+    <section id="error-section">
+      <div class="error-content">
+        <div class="error-icon">✕</div>
+        <h3>Pokémon Not Found</h3>
+        <p id="error-message">We couldn't find that Pokémon. Try another name or ID!</p>
+        <button id="error-back-btn" class="btn-primary">Go Back</button>
+      </div>
+    </section>
+
+    <!-- Pokemon Detail View -->
+    <section id="pokemon-section">
+      <div class="pokemon-layout">
+        <!-- Left: Pokemon Visual -->
+        <div class="pokemon-visual" id="pokemon-visual">
+          <div class="pokemon-id-badge" id="pokemon-id-badge">#001</div>
+          <div class="pokemon-sprite-container">
+            <div class="sprite-ring ring-1"></div>
+            <div class="sprite-ring ring-2"></div>
+            <div class="sprite-ring ring-3"></div>
+            <img id="pokemon-sprite" src="" alt="Pokémon sprite" class="pokemon-sprite">
+          </div>
+          <h2 class="pokemon-name" id="pokemon-name">Bulbasaur</h2>
+          <div class="pokemon-types" id="pokemon-types"></div>
+          <div class="pokemon-physical">
+            <div class="physical-stat">
+              <span class="physical-value" id="pokemon-height">0.7m</span>
+              <span class="physical-label">Height</span>
+            </div>
+            <div class="physical-divider"></div>
+            <div class="physical-stat">
+              <span class="physical-value" id="pokemon-weight">6.9kg</span>
+              <span class="physical-label">Weight</span>
+            </div>
+            <div class="physical-divider"></div>
+            <div class="physical-stat">
+              <span class="physical-value" id="pokemon-exp">64</span>
+              <span class="physical-label">Base Exp</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Pokemon Data -->
+        <div class="pokemon-data">
+          <!-- Description -->
+          <div class="data-card" id="description-card">
+            <h3 class="data-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+              Description
+            </h3>
+            <p class="pokemon-description" id="pokemon-description">Loading description...</p>
+          </div>
+
+          <!-- Stats -->
+          <div class="data-card" id="stats-card">
+            <h3 class="data-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+              Base Stats
+            </h3>
+            <div class="stats-grid" id="stats-grid"></div>
+          </div>
+
+          <!-- Abilities -->
+          <div class="data-card" id="abilities-card">
+            <h3 class="data-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              Abilities
+            </h3>
+            <div class="abilities-list" id="abilities-list"></div>
+          </div>
+
+          <!-- Moves Preview -->
+          <div class="data-card" id="moves-card">
+            <h3 class="data-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/><circle cx="12" cy="12" r="4"/></svg>
+              Moves <span class="moves-count" id="moves-count">(0)</span>
+            </h3>
+            <div class="moves-grid" id="moves-grid"></div>
+          </div>
+
+          <!-- Navigation -->
+          <div class="pokemon-nav">
+            <button class="nav-btn" id="prev-btn" title="Previous Pokémon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+              <span>Previous</span>
+            </button>
+            <button class="nav-btn" id="next-btn" title="Next Pokémon">
+              <span>Next</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Three.js from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
